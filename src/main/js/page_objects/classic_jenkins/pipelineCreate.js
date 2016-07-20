@@ -11,26 +11,23 @@ module.exports = {
     }
 };
 
-var request = require('request');
-
 // Nightwatch commands.
 // http://nightwatchjs.org/guide#writing-commands
 module.exports.commands = [{
     createPipeline: function(jobName, script, oncreated) {
         var self = this;
         
-        self.deletePipeline(jobName, function() {
-            self.setValue('@nameInput', jobName);
-            self.click('@pipelineJobType');
-            self.click('@submit', function () {
-                self.api.page.pipelineConfig().forJob(jobName)
-                    .setPipelineScript(script)
-                    .click('@save', oncreated);
-            });
-        });
+        self.waitForJobDeleted(jobName);
+
+        self.setValue('@nameInput', jobName);
+        self.click('@pipelineJobType');
+        self.click('@submit');
+
+        self.waitForJobCreated(jobName);
+
+        // Navigate to the job config page and set the pipeline script.
+        self.api.page.pipelineConfig().forJob(jobName)
+            .setPipelineScript(script)
+            .click('@save', oncreated);
     },
-    deletePipeline: function(jobName, ondeleted) {
-        var deleteUrl = this.api.launchUrl + 'job/' + jobName + '/doDelete';
-        request.post(deleteUrl, ondeleted);
-    }
 }];
