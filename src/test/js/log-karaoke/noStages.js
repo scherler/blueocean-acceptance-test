@@ -1,11 +1,16 @@
+/** @module noStages
+ * @memberof karaoke
+ * @description TEST: logs tailing a pipeline job without stages, but with steps - karaoke mode
+ */
 module.exports = {
+    /** */
     'Create Pipeline Job "noStages"': function (browser) {
         const pipelinesCreate = browser.page.pipelineCreate().navigate();
         pipelinesCreate.createPipeline('noStages', 'no-stages.groovy');
     },
-
+    /** */
     'Build Pipeline Job': function (browser) {
-        const pipelinePage = browser.page.pipeline().forJob('noStages');
+        const pipelinePage = browser.page.jobUtils().forJob('noStages');
         pipelinePage.buildStarted(function() {
             // Reload the job page and check that there was a build done.
             pipelinePage
@@ -14,7 +19,7 @@ module.exports = {
                 .waitForElementVisible('@executer');
         });
     },
-
+    /** */
     // need to click on an element so the up_arrow takes place in the window
     'Check Job Blue Ocean Pipeline Activity Page has run  - stop follow': function (browser) {
         const blueActivityPage = browser.page.bluePipelineActivity().forJob('noStages', 'jenkins');
@@ -72,7 +77,7 @@ module.exports = {
                 });
         blueRunDetailPage.assertBasicLayoutOkay();
     },
-
+    /** */
     'Check Job Blue Ocean Pipeline run detail page - follow': function (browser) {
         // Reload the page so as to restart karaoke mode        
         const blueRunDetailPage = browser.page.bluePipelineRunDetail().forRun('noStages', 'jenkins', 1);
@@ -94,7 +99,7 @@ module.exports = {
             ;
         });
     },
-
+    /** */
     'Check whether a log which exceed 150kb contains a link to full log and if clicked it disappear': function (browser) {
         const blueRunDetailPage = browser.page.bluePipelineRunDetail().forRun('noStages', 'jenkins', 1);
         
@@ -104,12 +109,38 @@ module.exports = {
             // works in the browser, but not for nightwatch.
             // NOTE: if the pipeline script (no-stages.groovy) changes then the following
             // selector will need to be changed too.
-            var lastLogConsoleSelector = '.logConsole.step-40';
+            var lastLogConsoleSelector = '.logConsole.step-11';
             
             blueRunDetailPage.waitForElementVisible(lastLogConsoleSelector);
             blueRunDetailPage.click(lastLogConsoleSelector);
             // request full log
-            blueRunDetailPage.clickFullLog(browser);
+            blueRunDetailPage.clickFullLog();
         });
     },
+    /** */
+    'Check whether a step that does not has a log as well will have the expando disabled': function (browser) {
+        const blueRunDetailPage = browser.page.bluePipelineRunDetail().forRun('noStages', 'jenkins', 1);
+        // NOTE: if the pipeline script (no-stages.groovy) changes then the following
+        // selector will need to be changed too.
+        browser
+            .waitForElementVisible('div.step-29 svg.disabled.result-item-expando');
+    },
+    /** */
+    'Check whether the test tab shows an empty state hint': function (browser) {
+        const blueRunDetailPage = browser.page.bluePipelineRunDetail().forRun('noStages', 'jenkins', 1);
+        blueRunDetailPage.clickTab('tests');
+        blueRunDetailPage.validateEmpty();
+    },
+    /** */
+    'Check whether the changes tab shows an empty state hint': function (browser) {
+        const blueRunDetailPage = browser.page.bluePipelineRunDetail().forRun('noStages', 'jenkins', 1);
+        blueRunDetailPage.clickTab('changes');
+        blueRunDetailPage.validateEmpty();
+    },
+    /** */
+    'Check whether the artifacts tab shows an empty state hint': function (browser) {
+        const blueRunDetailPage = browser.page.bluePipelineRunDetail().forRun('noStages', 'jenkins', 1);
+        blueRunDetailPage.clickTab('artifacts');
+        blueRunDetailPage.validateEmpty();
+    }
 };
